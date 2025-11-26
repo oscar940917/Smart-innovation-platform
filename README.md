@@ -1,0 +1,1 @@
+# Smart-innovation-platform
