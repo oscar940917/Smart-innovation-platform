@@ -5,10 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>程式碼生成工具</title>
     
-    <!-- 使用 Prism.js 做語法高亮 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-c.min.js"></script>
 
     <style>
         body {
@@ -17,7 +19,6 @@
             margin: 0;
             padding: 0;
         }
-
         .container {
             max-width: 800px;
             margin: 50px auto;
@@ -26,33 +27,19 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             border-radius: 12px;
         }
-
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-        }
-
-        label {
-            font-weight: bold;
-            display: block;
-            margin-bottom: 10px;
-        }
-
-        textarea {
+        h1 { text-align: center; color: #333; margin-bottom: 30px; }
+        label { font-weight: bold; display: block; margin-bottom: 10px; }
+        textarea, select {
             width: 100%;
             padding: 15px;
             border-radius: 8px;
             border: 1px solid #ccc;
             font-size: 16px;
-            resize: vertical;
+            margin-bottom: 15px;
             box-sizing: border-box;
-            min-height: 120px;
             font-family: Consolas, Monaco, monospace;
         }
-
         input[type="submit"] {
-            margin-top: 15px;
             padding: 12px 30px;
             border: none;
             background-color: #4CAF50;
@@ -62,11 +49,9 @@
             cursor: pointer;
             transition: background-color 0.3s;
         }
-
-        input[type="submit"]:hover {
-            background-color: #45a049;
-        }
-
+        input[type="submit"]:hover { background-color: #45a049; }
+        
+        /* 程式碼結果區塊的樣式 */
         .result {
             margin-top: 30px;
             background-color: #2d2d2d;
@@ -75,13 +60,45 @@
             color: #f8f8f2;
             font-size: 14px;
             overflow-x: auto;
+            position: relative; /* 為了定位複製按鈕 */
         }
+        pre { margin: 0; white-space: pre-wrap; word-wrap: break-word; }
 
-        pre {
-            margin: 0;
-            white-space: pre-wrap;  /* 保留換行 */
-            word-wrap: break-word;
+        /* 新增的複製按鈕樣式 */
+        .copy-button {
+            background-color: #555;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+            font-weight: bold;
+            display: inline-flex; /* 讓內容對齊 */
+            align-items: center;
+            gap: 5px; /* 圖示和文字間距 */
         }
+        .copy-button:hover {
+            background-color: #777;
+        }
+        .copy-button:active {
+            background-color: #444;
+        }
+        /* 讓標題和按鈕並排 */
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* 輕微分隔線 */
+        }
+        .result-header h3 {
+            margin: 0;
+            color: #61afef; /* 使用亮色系 */
+        }
+        
     </style>
 </head>
 <body>
@@ -91,15 +108,75 @@
         <form method="POST" action="/">
             <label for="description">請輸入你的需求描述：</label>
             <textarea id="description" name="description" placeholder="描述你想生成的程式碼功能"></textarea>
+
+            <label for="language">選擇程式語言：</label>
+            <select id="language" name="language">
+                <option value="Python" {% if language=='Python' %}selected{% endif %}>Python</option>
+                <option value="JavaScript" {% if language=='JavaScript' %}selected{% endif %}>JavaScript</option>
+                <option value="Java" {% if language=='Java' %}selected{% endif %}>Java</option>
+                <option value="C" {% if language=='C' %}selected{% endif %}>C</option> 
+                </select>
+
             <input type="submit" value="生成程式碼">
         </form>
 
         {% if result %}
         <div class="result">
-            <h3>生成的程式碼：</h3>
-            <pre><code class="language-python">{{ result }}</code></pre>
+            
+            <div class="result-header">
+                <h3>生成的程式碼：</h3>
+                <button class="copy-button" onclick="copyCode('generated-code')">
+                    <span id="copy-icon">📋</span> 複製程式碼
+                </button>
+            </div>
+            
+            <pre id="generated-code"><code class="language-{{ language|lower }}">{{ result }}</code></pre>
+
+            {% if complexity %}
+            <div style="margin-top: 20px;">
+                <h3 style="color: #61afef; margin-bottom: 10px; padding-bottom: 0; border-bottom: none;">複雜度分析：</h3>
+                <pre>{{ complexity }}</pre>
+            </div>
+            {% endif %}
         </div>
         {% endif %}
     </div>
+
+    <script>
+        function copyCode(elementId) {
+            const preElement = document.getElementById(elementId);
+            let codeToCopy = '';
+            
+            // 嘗試從 <code> 標籤中獲取內容
+            const codeElement = preElement.querySelector('code');
+            if (codeElement) {
+                codeToCopy = codeElement.textContent;
+            } else if (preElement) {
+                // 如果沒有 <code> 標籤，直接取 <pre> 的內容 (用於複雜度分析等)
+                codeToCopy = preElement.textContent;
+            }
+
+            if (codeToCopy) {
+                // 使用現代的 Clipboard API 進行複製
+                navigator.clipboard.writeText(codeToCopy)
+                    .then(() => {
+                        const button = document.querySelector('.copy-button');
+                        const originalText = button.innerHTML;
+                        
+                        // 複製成功後，短暫改變按鈕文字和圖示
+                        button.innerHTML = '✅ 已複製！'; 
+                        
+                        // 1.5 秒後恢復按鈕文字
+                        setTimeout(() => {
+                            button.innerHTML = originalText;
+                        }, 1500);
+                    })
+                    .catch(err => {
+                        console.error('複製失敗:', err);
+                        alert('複製程式碼失敗，請確認瀏覽器權限或手動選取內容。');
+                    });
+            }
+        }
+    </script>
 </body>
 </html>
