@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>程式碼生成工具</title>
+    
+    <!-- 使用 Prism.js 做語法高亮 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-python.min.js"></script>
+
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: #fff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: 12px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            resize: vertical;
+            box-sizing: border-box;
+            min-height: 120px;
+            font-family: Consolas, Monaco, monospace;
+        }
+
+        input[type="submit"] {
+            margin-top: 15px;
+            padding: 12px 30px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        .result {
+            margin-top: 30px;
+            background-color: #2d2d2d;
+            border-radius: 8px;
+            padding: 20px;
+            color: #f8f8f2;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+
+        pre {
+            margin: 0;
+            white-space: pre-wrap;  /* 保留換行 */
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>程式碼生成工具</h1>
+
+        <form method="POST" action="/">
+            <label for="description">請輸入你的需求描述：</label>
+            <textarea id="description" name="description" placeholder="描述你想生成的程式碼功能"></textarea>
+            <input type="submit" value="生成程式碼">
+        </form>
+
+        {% if result %}
+        <div class="result">
+            <h3>生成的程式碼：</h3>
+            <pre><code class="language-python">{{ result }}</code></pre>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

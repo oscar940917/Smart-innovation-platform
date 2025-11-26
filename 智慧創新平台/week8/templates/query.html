@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>中文→英文翻譯網站</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: #fff;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+
+        input[type="submit"] {
+            margin-top: 15px;
+            padding: 12px 25px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #f7f9fc;
+            border-left: 4px solid #4CAF50;
+            border-radius: 6px;
+            color: #333;
+            font-size: 16px;
+            white-space: pre-wrap; /* 保留換行 */
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>中文 → 英文翻譯</h1>
+        <form method="post">
+            <textarea name="text" rows="6" placeholder="請輸入中文文字"></textarea>
+            <input type="submit" value="翻譯">
+        </form>
+
+        {% if result %}
+        <div class="result">
+            <h3>翻譯結果：</h3>
+            <p>{{ result }}</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
