@@ -1,43 +1,40 @@
-#推理跟行動的合作-專案:去搜尋今天台股的TSMC開盤/收盤價，給明天TSMC的最佳賣點價
-#6.1複習ReAct框架
-#6.2LangChain中的ReAct Agent的實現
-#6.3LangChain的工具和工具包
-#6.4creat_react_agent建立股票定價Agent
-
-#匯入環境變數
-from dotenv import load_dotenv #pip install python-dotenv
-load_dotenv()
-
 import os
+from dotenv import load_dotenv
 
-#取得環境變數(金鑰放在.env)，不會揭露API code
-serpapi_key = os.getenv("SERP_API_KEY")  #pip install google-search-results
-print(serpapi_key)
+# 1. 載入金鑰
+load_dotenv()
+serpapi_key = os.getenv("SERP_API_KEY")
 
-#pip install numexpr
-#初始化大模型:控制Agent
-#from langchain_openai import ChatOpenAI #pip install langchain-openai 新版寫法不適合當下環境
-from langchain.chat_models import ChatOpenAI
+# 2. 核心元件匯入 (改用絕對路徑，避開 __init__.py 的錯誤)
+from langchain_openai import ChatOpenAI
+from langchain_community.agent_toolkits.load_tools import load_tools
+import langchainhub as hub
+
+# 關鍵修正：直接從底層路徑抓取 AgentExecutor 和 create_react_agent
+from langchain.agents.agent import AgentExecutor
+from langchain.agents.react.agent import create_react_agent
+
+# 3. 初始化模型 (GPT-4o mini)
 llm = ChatOpenAI(model='gpt-4o-mini', temperature=0.5)
 
-#設定工具:兩個工具，1:SerpApi: google; 2:llm-math: 數學
-from langchain.agents import initialize_agent, AgentType, load_tools
-#from langchain_community.agent_toolkits.load_tools import load_tools
-tools = load_tools(["serpapi","llm-math"],llm=llm,serpapi_api_key=serpapi_key)
+# 4. 準備工具
+tools = load_tools(["serpapi", "llm-math"], llm=llm, serpapi_api_key=serpapi_key)
 
-#第一個練習
-#from langchain.agents import initialize_agent, AgentType
+# 5. 取得思考模板 (ReAct Prompt)
+prompt = hub.pull("hwchase17/react")
 
-agent = initialize_agent(
-    tools = tools,
-    llm=llm,
-    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-    verbose=True,
-    handle_parsing_errors=True #新增項目
+# 6. 建立 Agent 與執行器
+agent = create_react_agent(llm, tools, prompt)
+agent_executor = AgentExecutor(
+    agent=agent, 
+    tools=tools, 
+    verbose=True, 
+    handle_parsing_errors=True
 )
 
-#agent.run("今天虎尾天氣、濕度、空氣品質如何?")
-agent.run("去搜尋今天台股的TSMC開盤/收盤價，給明天TSMC的最佳賣點價?")
+# 7. 執行任務
+print("--- 啟動 TSMC ReAct 推理任務 ---")
+query = "搜尋今日台股台積電(2330)的開盤與收盤價，並計算若要獲利 3% 賣出，目標價位是多少？"
 
-
-
+# 使用 invoke 執行
+agent_executor.invoke({"input": query})
