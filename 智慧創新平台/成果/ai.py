@@ -8,22 +8,37 @@ import requests
 import textwrap
 
 # -----------------------------
-# 讀取環境變數
+# 讀取環境變數 (.env 在 ai.py 的上層)
 # -----------------------------
-load_dotenv()
-OPENAI_API_KEY = os.getenv("OPEN_API_KEY")
+dotenv_path = os.path.join(os.path.dirname(__file__), "..", ".env")
+load_dotenv(dotenv_path)
+
+# 🔑 OpenAI API Key
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if not OPENAI_API_KEY:
+    raise ValueError("⚠️ 找不到 OpenAI API Key，請在 .env 裡設置 OPENAI_API_KEY")
+
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
-# JDoodle API 相關
+# JDoodle API
 JDOODLE_CLIENT_ID = os.getenv("JDOODLE_CLIENT_ID")
 JDOODLE_CLIENT_SECRET = os.getenv("JDOODLE_CLIENT_SECRET")
 DAILY_LIMIT = 200
+if not JDOODLE_CLIENT_ID or not JDOODLE_CLIENT_SECRET:
+    raise ValueError("⚠️ 請在 .env 裡設置 JDOODLE_CLIENT_ID 和 JDOODLE_CLIENT_SECRET")
 
+# -----------------------------
+# OpenAI Client 初始化
+# -----------------------------
 client = OpenAI(api_key=OPENAI_API_KEY)
+
+# -----------------------------
+# Flask 初始化
+# -----------------------------
 app = Flask(__name__)
 
 # -----------------------------
-# 程式碼模板（完整）
+# 程式碼模板
 # -----------------------------
 TEMPLATES = {
     "bfs": """
@@ -287,5 +302,9 @@ def home():
         quota_exceeded=quota_exceeded
     )
 
+# -----------------------------
+# 啟動 Flask
+# -----------------------------
 if __name__ == "__main__":
+    print("✅ Flask 服務啟動中…")
     app.run(debug=DEBUG)
